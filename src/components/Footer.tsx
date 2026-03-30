@@ -97,7 +97,7 @@ const Footer = () => {
                 </div>
                 <div>
                   <p className="text-xs text-white/30 uppercase tracking-widest font-bold mb-1">الهاتف</p>
-                  <p className="text-white/60" dir="ltr">+20 123 456 7890</p>
+                  <p className="text-white/60" dir="ltr">01107507344</p>
                 </div>
               </li>
               <li className="flex items-start gap-4 group">
@@ -106,7 +106,7 @@ const Footer = () => {
                 </div>
                 <div>
                   <p className="text-xs text-white/30 uppercase tracking-widest font-bold mb-1">البريد الإلكتروني</p>
-                  <p className="text-white/60">info@tabliya.com</p>
+                  <p className="text-white/60">Tabliafood.com@gmail.com</p>
                 </div>
               </li>
             </ul>

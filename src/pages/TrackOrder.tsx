@@ -120,7 +120,7 @@ const TrackOrder = () => {
                 </div>
                 <div>
                   <p className="text-xs text-secondary/40 font-bold uppercase tracking-widest mb-1">رقم التواصل</p>
-                  <p className="font-bold">+20 100 123 4567</p>
+                  <p className="font-bold">01107507344</p>
                 </div>
               </div>
             </div>
