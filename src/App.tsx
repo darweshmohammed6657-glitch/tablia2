@@ -14,6 +14,7 @@ import ChefDashboard from './pages/ChefDashboard';
 import AddMeal from './pages/AddMeal';
 import TrackOrder from './pages/TrackOrder';
 import About from './pages/About';
+import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -42,6 +43,7 @@ const AnimatedRoutes = () => {
           <Route path="/chef-dashboard" element={<ChefDashboard />} />
           <Route path="/add-meal" element={<AddMeal />} />
           <Route path="/track-order/:id" element={<TrackOrder />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </motion.div>
     </AnimatePresence>
