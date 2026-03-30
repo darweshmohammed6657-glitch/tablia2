@@ -7,14 +7,14 @@ const Hero = () => {
   return (
     <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-secondary">
       {/* Background with Overlay */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 bg-black">
         <img 
-          src="https://images.unsplash.com/photo-1541529086526-db283c563270?q=80&w=2070&auto=format&fit=crop" 
-          alt="Arabic Food Table" 
-          className="w-full h-full object-cover opacity-60 scale-105"
+          src="https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=2070&auto=format&fit=crop" 
+          alt="Authentic Home Feast" 
+          className="w-full h-full object-cover opacity-85 scale-105"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-l from-secondary/95 via-secondary/50 to-transparent" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">

@@ -1,0 +1,245 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - name: string (required)
+    //   - email: string (required)
+    //   - role: string (required, enum: ['customer', 'chef', 'admin'])
+    //   - phone: string (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: chefs_public
+    // Document ID: {chefId}
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - name: string (required)
+    //   - image: string (optional)
+    //   - specialty: string (optional)
+    //   - bio: string (optional)
+    //   - rating: number (optional)
+    //   - reviewsCount: number (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: meals
+    // Document ID: {mealId}
+    // Fields:
+    //   - name: string (required)
+    //   - description: string (required)
+    //   - price: number (required)
+    //   - image: string (required)
+    //   - chefId: string (required, immutable)
+    //   - chefName: string (required)
+    //   - rating: number (optional)
+    //   - category: string (required)
+    //   - ingredients: list (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: orders
+    // Document ID: {orderId}
+    // Fields:
+    //   - customerId: string (required, immutable)
+    //   - customerName: string (required)
+    //   - chefId: string (required, immutable)
+    //   - chefName: string (required)
+    //   - items: string (required, JSON stringified)
+    //   - total: number (required)
+    //   - status: string (required, enum: ['pending', 'preparing', 'on_way', 'delivered'])
+    //   - currentStep: number (required)
+    //   - estimatedDelivery: string (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "darweshmohammed6657@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isChef() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'chef';
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid || isAdmin();
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+        (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'name', 'email', 'role', 'createdAt']) &&
+             hasOnlyAllowedFields(['uid', 'name', 'email', 'role', 'phone', 'createdAt']) &&
+             validStringLength('uid', 1, 128) &&
+             validStringLength('name', 1, 100) &&
+             isValidEmail(data.email) &&
+             data.role in ['customer', 'chef', 'admin'] &&
+             isValidOptionalString('phone', 5, 20) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidChefPublic() {
+      let data = request.resource.data;
+      return hasRequiredFields(['uid', 'name', 'createdAt']) &&
+             hasOnlyAllowedFields(['uid', 'name', 'image', 'specialty', 'bio', 'rating', 'reviewsCount', 'createdAt']) &&
+             validStringLength('uid', 1, 128) &&
+             validStringLength('name', 1, 100) &&
+             (!( 'image' in data ) || isValidUrl(data.image)) &&
+             isValidOptionalString('specialty', 1, 100) &&
+             isValidOptionalString('bio', 1, 1000) &&
+             (!( 'rating' in data ) || (data.rating is number && data.rating >= 0 && data.rating <= 5)) &&
+             (!( 'reviewsCount' in data ) || (data.reviewsCount is number && data.reviewsCount >= 0)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMeal() {
+      let data = request.resource.data;
+      return hasRequiredFields(['name', 'description', 'price', 'image', 'chefId', 'chefName', 'category', 'createdAt']) &&
+             hasOnlyAllowedFields(['name', 'description', 'price', 'image', 'chefId', 'chefName', 'rating', 'category', 'ingredients', 'createdAt']) &&
+             validStringLength('name', 1, 100) &&
+             validStringLength('description', 1, 1000) &&
+             data.price is number && data.price >= 0 &&
+             isValidUrl(data.image) &&
+             validStringLength('chefId', 1, 128) &&
+             validStringLength('chefName', 1, 100) &&
+             (!( 'rating' in data ) || (data.rating is number && data.rating >= 0 && data.rating <= 5)) &&
+             validStringLength('category', 1, 50) &&
+             (!( 'ingredients' in data ) || (data.ingredients is list && data.ingredients.size() <= 50)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidOrder() {
+      let data = request.resource.data;
+      return hasRequiredFields(['customerId', 'customerName', 'chefId', 'chefName', 'items', 'total', 'status', 'currentStep', 'createdAt']) &&
+             hasOnlyAllowedFields(['customerId', 'customerName', 'chefId', 'chefName', 'items', 'total', 'status', 'currentStep', 'estimatedDelivery', 'createdAt']) &&
+             validStringLength('customerId', 1, 128) &&
+             validStringLength('customerName', 1, 100) &&
+             validStringLength('chefId', 1, 128) &&
+             validStringLength('chefName', 1, 100) &&
+             validStringLength('items', 1, 10000) && // JSON stringified items
+             data.total is number && data.total >= 0 &&
+             data.status in ['pending', 'preparing', 'on_way', 'delivered'] &&
+             data.currentStep is number && data.currentStep >= 0 && data.currentStep <= 3 &&
+             isValidOptionalString('estimatedDelivery', 1, 100) &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && 
+                    isValidUser() && 
+                    uidUnchanged() && 
+                    ((isOwner(userId) && request.resource.data.role != 'admin') || isAdmin());
+      allow update: if isAuthenticated() && 
+                    isValidUser() && 
+                    uidNotModified() && 
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+    }
+
+    match /chefs_public/{chefId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && 
+                    isValidChefPublic() && 
+                    uidUnchanged() && 
+                    (isOwner(chefId) || isAdmin());
+      allow update: if isAuthenticated() && 
+                    isValidChefPublic() && 
+                    uidNotModified() && 
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    (isOwner(chefId) || isAdmin());
+    }
+
+    match /meals/{mealId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && 
+                    isValidMeal() && 
+                    ((isChef() && request.resource.data.chefId == request.auth.uid) || isAdmin());
+      allow update: if isAuthenticated() && 
+                    isValidMeal() && 
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    request.resource.data.chefId == resource.data.chefId &&
+                    (resource.data.chefId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && (resource.data.chefId == request.auth.uid || isAdmin());
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (resource.data.customerId == request.auth.uid || resource.data.chefId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+                    isValidOrder() && 
+                    request.resource.data.customerId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                    isValidOrder() && 
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    request.resource.data.customerId == resource.data.customerId &&
+                    request.resource.data.chefId == resource.data.chefId &&
+                    (resource.data.customerId == request.auth.uid || resource.data.chefId == request.auth.uid || isAdmin());
+    }
+  }
+}

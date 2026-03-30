@@ -24,6 +24,7 @@ const Header = () => {
           <NavLink to="/" className={({ isActive }) => `font-bold text-sm transition-colors ${isActive ? 'text-primary' : 'text-secondary/80 hover:text-primary'}`}>الرئيسية</NavLink>
           <NavLink to="/meals" className={({ isActive }) => `font-bold text-sm transition-colors ${isActive ? 'text-primary' : 'text-secondary/80 hover:text-primary'}`}>الأكلات</NavLink>
           <NavLink to="/chefs" className={({ isActive }) => `font-bold text-sm transition-colors ${isActive ? 'text-primary' : 'text-secondary/80 hover:text-primary'}`}>الطهاة</NavLink>
+          <NavLink to="/about" className={({ isActive }) => `font-bold text-sm transition-colors ${isActive ? 'text-primary' : 'text-secondary/80 hover:text-primary'}`}>من نحن</NavLink>
           {isLoggedIn && userType === 'customer' && (
             <NavLink to="/track-order/TAB-10293" className={({ isActive }) => `font-bold text-sm transition-colors ${isActive ? 'text-primary' : 'text-secondary/80 hover:text-primary'}`}>طلباتي</NavLink>
           )}

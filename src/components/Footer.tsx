@@ -46,6 +46,7 @@ const Footer = () => {
                 { name: 'الرئيسية', path: '/' },
                 { name: 'استكشف الأكلات', path: '/meals' },
                 { name: 'تعرف على الطهاة', path: '/chefs' },
+                { name: 'من نحن', path: '/about' },
                 { name: 'انضم كطاهي', path: '/login?type=chef' }
               ].map((link, i) => (
                 <li key={i}>

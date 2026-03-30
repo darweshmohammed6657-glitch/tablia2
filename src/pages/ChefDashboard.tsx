@@ -13,7 +13,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useApp } from '../context';
-import { MOCK_MEALS } from '../types';
 import { motion } from 'motion/react';
 
 const ChefDashboard = () => {

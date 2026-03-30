@@ -1,12 +1,14 @@
 import React from 'react';
 import Hero from '../components/Hero';
 import MealCard from '../components/MealCard';
-import { MOCK_MEALS } from '../types';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Star, ShieldCheck, Zap, Heart, Quote, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useApp } from '../context';
 
 const Home = () => {
+  const { meals } = useApp();
+  
   return (
     <div className="bg-white">
       <Hero />
@@ -77,7 +79,7 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {MOCK_MEALS.slice(0, 4).map((meal, index) => (
+            {meals.slice(0, 4).map((meal, index) => (
               <motion.div
                 key={meal.id}
                 initial={{ opacity: 0, y: 20 }}

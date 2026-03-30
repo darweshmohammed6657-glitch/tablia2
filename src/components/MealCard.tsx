@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ShoppingCart, Clock, Heart, Award } from 'lucide-react';
-import { Meal, MOCK_CHEFS } from '../types';
+import { Meal } from '../types';
 import { useApp } from '../context';
 import { motion } from 'motion/react';
 
@@ -10,8 +10,8 @@ interface MealCardProps {
 }
 
 const MealCard: React.FC<MealCardProps> = ({ meal }) => {
-  const { addToCart } = useApp();
-  const chef = MOCK_CHEFS.find(c => c.id === meal.chefId);
+  const { addToCart, chefs } = useApp();
+  const chef = chefs.find(c => c.id === meal.chefId);
 
   return (
     <motion.div 
@@ -35,6 +35,11 @@ const MealCard: React.FC<MealCardProps> = ({ meal }) => {
             <Star size={14} className="fill-accent text-accent" />
             <span className="text-xs font-black text-secondary">{meal.rating}</span>
           </div>
+          {meal.rating >= 4.8 && (
+            <div className="bg-accent/90 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">شائع</span>
+            </div>
+          )}
         </div>
 
         <button className="absolute top-4 left-4 p-3 bg-white/20 backdrop-blur-md hover:bg-white text-white hover:text-primary rounded-2xl transition-all shadow-lg">

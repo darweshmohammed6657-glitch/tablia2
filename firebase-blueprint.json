@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user's private profile.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "name": { "type": "string", "description": "The user's full name." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "role": { "type": "string", "enum": ["customer", "chef", "admin"], "description": "The user's role." },
+        "phone": { "type": "string", "description": "The user's phone number." },
+        "createdAt": { "type": "timestamp", "description": "When the user was created." }
+      },
+      "required": ["uid", "name", "email", "role", "createdAt"]
+    },
+    "ChefPublic": {
+      "title": "ChefPublic",
+      "description": "Public profile of a chef.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The chef's unique ID." },
+        "name": { "type": "string", "description": "The chef's full name." },
+        "image": { "type": "string", "description": "The chef's profile image URL." },
+        "specialty": { "type": "string", "description": "Chef's specialty." },
+        "bio": { "type": "string", "description": "Chef's bio." },
+        "rating": { "type": "number", "description": "Chef's rating." },
+        "reviewsCount": { "type": "number", "description": "Chef's number of reviews." },
+        "createdAt": { "type": "timestamp", "description": "When the profile was created." }
+      },
+      "required": ["uid", "name", "createdAt"]
+    },
+    "Meal": {
+      "title": "Meal",
+      "description": "A meal offered by a chef.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the meal." },
+        "description": { "type": "string", "description": "Description of the meal." },
+        "price": { "type": "number", "description": "Price of the meal." },
+        "image": { "type": "string", "description": "Image URL of the meal." },
+        "chefId": { "type": "string", "description": "ID of the chef who created the meal." },
+        "chefName": { "type": "string", "description": "Name of the chef." },
+        "rating": { "type": "number", "description": "Rating of the meal." },
+        "category": { "type": "string", "description": "Category of the meal." },
+        "ingredients": { "type": "array", "items": { "type": "string" }, "description": "List of ingredients." },
+        "createdAt": { "type": "timestamp", "description": "When the meal was created." }
+      },
+      "required": ["name", "description", "price", "image", "chefId", "chefName", "category", "createdAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "An order placed by a customer.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string", "description": "ID of the customer who placed the order." },
+        "customerName": { "type": "string", "description": "Name of the customer." },
+        "chefId": { "type": "string", "description": "ID of the chef fulfilling the order." },
+        "chefName": { "type": "string", "description": "Name of the chef." },
+        "items": { "type": "string", "description": "JSON stringified array of CartItem objects." },
+        "total": { "type": "number", "description": "Total price of the order." },
+        "status": { "type": "string", "enum": ["pending", "preparing", "on_way", "delivered"], "description": "Status of the order." },
+        "currentStep": { "type": "number", "description": "Current step of the order (0-3)." },
+        "estimatedDelivery": { "type": "string", "description": "Estimated delivery time." },
+        "createdAt": { "type": "timestamp", "description": "When the order was placed." }
+      },
+      "required": ["customerId", "customerName", "chefId", "chefName", "items", "total", "status", "currentStep", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Collection of users."
+    },
+    "chefs_public/{chefId}": {
+      "schema": { "$ref": "#/entities/ChefPublic" },
+      "description": "Collection of public chef profiles."
+    },
+    "meals/{mealId}": {
+      "schema": { "$ref": "#/entities/Meal" },
+      "description": "Collection of meals."
+    },
+    "orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Collection of orders."
+    }
+  }
+}

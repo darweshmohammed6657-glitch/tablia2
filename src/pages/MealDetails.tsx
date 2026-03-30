@@ -1,6 +1,5 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MOCK_MEALS, MOCK_CHEFS } from '../types';
 import { Star, ShoppingCart, ChevronRight, User, Clock, ShieldCheck, Heart, Share2, Info, Utensils, Award, MapPin } from 'lucide-react';
 import { useApp } from '../context';
 import { motion } from 'motion/react';
@@ -8,11 +7,11 @@ import MealCard from '../components/MealCard';
 
 const MealDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { addToCart } = useApp();
+  const { addToCart, meals, chefs } = useApp();
   
-  const meal = MOCK_MEALS.find(m => m.id === id);
-  const chef = MOCK_CHEFS.find(c => c.id === meal?.chefId);
-  const relatedMeals = MOCK_MEALS.filter(m => m.category === meal?.category && m.id !== id).slice(0, 3);
+  const meal = meals.find(m => m.id === id);
+  const chef = chefs.find(c => c.id === meal?.chefId);
+  const relatedMeals = meals.filter(m => m.category === meal?.category && m.id !== id).slice(0, 3);
 
   if (!meal) {
     return (
@@ -51,6 +50,11 @@ const MealDetails = () => {
                   <Star size={16} className="fill-accent text-accent" />
                   <span>{meal.rating} تقييم</span>
                 </div>
+                {meal.rating >= 4.8 && (
+                  <span className="bg-accent px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest text-white">
+                    شائع
+                  </span>
+                )}
               </div>
               <h1 className="text-5xl lg:text-7xl font-bold mb-6 font-serif leading-tight">{meal.name}</h1>
               <div className="flex items-center gap-6 text-white/80">

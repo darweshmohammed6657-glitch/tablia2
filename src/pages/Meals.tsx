@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { MOCK_MEALS } from '../types';
+import { useApp } from '../context';
 import MealCard from '../components/MealCard';
 import { Search, Filter, SlidersHorizontal, Utensils, Flame, Clock, Star, ShieldCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const Meals = () => {
+  const { meals } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('الكل');
 
   const categories = ['الكل', 'مشويات', 'محاشي', 'طواجن', 'معجنات', 'حلويات'];
 
-  const filteredMeals = MOCK_MEALS.filter(meal => {
+  const filteredMeals = meals.filter(meal => {
     const matchesSearch = meal.name.includes(searchQuery) || meal.chefName.includes(searchQuery);
     const matchesCategory = selectedCategory === 'الكل' || meal.category === selectedCategory;
     return matchesSearch && matchesCategory;
