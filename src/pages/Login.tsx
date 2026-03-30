@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { User, ChefHat, Mail, Lock, ArrowRight, ArrowLeft, CheckCircle2, Phone, MapPin } from 'lucide-react';
 import { useApp } from '../context';
 import { motion, AnimatePresence } from 'motion/react';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +26,46 @@ const Login = () => {
     setIsLoggedIn(true);
     setUserType(activeType);
     navigate(activeType === 'chef' ? '/chef-dashboard' : '/');
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Check if user exists in Firestore
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      let finalRole = activeType;
+
+      if (!userSnap.exists()) {
+        // Create new user document
+        try {
+          await setDoc(userRef, {
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || '',
+            role: activeType,
+            createdAt: new Date()
+          });
+        } catch (err) {
+          handleFirestoreError(err, OperationType.CREATE, `users/${user.uid}`);
+        }
+      } else {
+        finalRole = userSnap.data().role;
+      }
+
+      navigate(finalRole === 'chef' ? '/chef-dashboard' : '/');
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-closed-by-user') {
+        console.log("User closed the sign-in popup.");
+        return;
+      }
+      console.error("Google sign in error:", error);
+      alert("حدث خطأ أثناء تسجيل الدخول باستخدام جوجل");
+    }
   };
 
   return (
@@ -227,7 +270,7 @@ const Login = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <button type="button" className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-gray-200 font-bold hover:bg-gray-50 transition-all text-secondary">
+                <button type="button" onClick={handleGoogleSignIn} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-gray-200 font-bold hover:bg-gray-50 transition-all text-secondary">
                   <svg width="20" height="20" viewBox="0 0 24 24" className="shrink-0">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
