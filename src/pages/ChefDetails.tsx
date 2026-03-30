@@ -1,16 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, MapPin, Award, ChevronRight, Utensils } from 'lucide-react';
 import { motion } from 'motion/react';
 import MealCard from '../components/MealCard';
 import { useApp } from '../context';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { Meal } from '../types';
 
 const ChefDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { chefs, meals } = useApp();
+  const { chefs } = useApp();
+  const [chefMeals, setChefMeals] = useState<Meal[]>([]);
+  const [loadingMeals, setLoadingMeals] = useState(true);
   
   const chef = chefs.find(c => c.id === id);
-  const chefMeals = meals.filter(m => m.chefId === id);
+
+  useEffect(() => {
+    const fetchChefMeals = async () => {
+      if (!id) return;
+      try {
+        const q = query(collection(db, 'meals'), where('chefId', '==', id));
+        const querySnapshot = await getDocs(q);
+        const mealsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Meal));
+        setChefMeals(mealsData);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.LIST, 'meals');
+      } finally {
+        setLoadingMeals(false);
+      }
+    };
+
+    fetchChefMeals();
+  }, [id]);
 
   if (!chef) {
     return (
@@ -99,11 +121,15 @@ const ChefDetails = () => {
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold text-secondary font-serif flex items-center gap-3">
                 <Utensils className="text-primary" />
-                قائمة طعام {chef.name}
+                قائمة طعام الشيف
               </h2>
             </div>
             
-            {chefMeals.length > 0 ? (
+            {loadingMeals ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              </div>
+            ) : chefMeals.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {chefMeals.map((meal, index) => (
                   <motion.div
